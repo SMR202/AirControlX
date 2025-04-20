@@ -113,7 +113,7 @@ private:
                 pthread_mutex_lock(&flightMutex);
                 flight->isEmergency = true;
                 flight->priority = flight->calculatePriority();
-                std::cout << "EMERGENCY DECLARED: Flight " << flight->flightNumber << " (" << flight->airline->name << ")\n";
+                std::cout << "❌ EMERGENCY DECLARED: Flight " << flight->flightNumber << " (" << flight->airline->name << ")\n";
                 pthread_mutex_unlock(&flightMutex);
             }
         }
@@ -158,10 +158,7 @@ private:
                 avns.push_back(avn);
                 flight->hasActiveAVN = true;
                 
-                std::cout << "AVN ISSUED: Flight " << flight->flightNumber 
-                          << " (" << flight->airline->name << ") - Speed: " 
-                          << flight->speed << " km/h, Allowed: " << allowedSpeed 
-                          << " km/h, State: " << flight->getStateString() << "\n";
+                std::cout << "💸 AVN ISSUED: Flight " << flight->flightNumber << " (" << flight->airline->name << ") - Speed: " << flight->speed << " km/h, Allowed: " << allowedSpeed << " km/h, State: " << flight->getStateString() << "\n";
                 pthread_mutex_unlock(&avnMutex);
             }
         }
@@ -229,9 +226,8 @@ public:
 
     void startSimulation(){
         simulationRunning = true;
-        simulationStartTime = time(NULL);
+        simulationStartTime = time(0);
 
-        // Create initial flights
         createInitialFlights();
 
         // Start simulation threads
@@ -387,6 +383,10 @@ public:
                     
                     if (runwayAvailable) {
                         flight->updateState();
+
+                        std::cout<<"🤑🤑🤑🤑FLIGHT " << flight->flightNumber << " (" << flight->airline->name << ") - "
+                                 << flight->getStateString() << " - Runway: " << flight->getRunwayString() 
+                                 << "\n";
                         
                         // Release runway after use
                         if ((flight->state == AirCraftState::taxi && flight->isArrival()) || 
@@ -410,7 +410,8 @@ public:
                     
                     if (completionTimes.find(flight) == completionTimes.end()) {
                         completionTimes[flight] = time(nullptr) + 10;
-                    } else if (time(nullptr) >= completionTimes[flight]) {
+                    } 
+                    else if (time(0) >= completionTimes[flight]) {
                         delete flight;
                         it = flights.erase(it);
                         continue;
@@ -429,7 +430,6 @@ public:
 
     void displayLoop() {
         while (simulationRunning) {
-            // Clear screen for better display (platform dependent)
             #ifdef _WIN32
             system("cls");
             #else
@@ -437,17 +437,17 @@ public:
             #endif
             
             // Calculate elapsed time
-            time_t now = time(nullptr);
+            time_t now = time(0);
             int elapsed = static_cast<int>(difftime(now, simulationStartTime));
             
             std::cout << "==== AirControlX Simulation - Time: " 
                       << elapsed / 60 << ":" << std::setw(2) << std::setfill('0') << elapsed % 60 
                       << " / 5:00 ====\n\n";
-            
+    
             pthread_mutex_lock(&flightMutex);
             std::cout << "ACTIVE FLIGHTS: " << flights.size() << "\n";
             std::cout << "----------------------------------------------------------------------\n";
-            std::cout << std::left << std::setw(15) << "Flight" 
+            std::cout << std::left << std::setw(15) << std::setfill(' ') << "Flight" 
                       << std::setw(15) << "Airline" 
                       << std::setw(12) << "Type" 
                       << std::setw(10) << "Direction" 
@@ -513,8 +513,6 @@ public:
                 if (flight->speedViolation() && !flight->hasActiveAVN) {
                     issueSpeedViolationAVN(flight);
                 }
-                checkAirspaceBoundaryViolation(flight);
-                checkPhaseViolation(flight);
             }
             
             pthread_mutex_unlock(&flightMutex);
@@ -564,82 +562,7 @@ public:
                   << " km/h, State: " << flight->getStateString() << "\n";
         pthread_mutex_unlock(&avnMutex);
     }
-    
-    void checkAirspaceBoundaryViolation(Flight* flight) {
-        
-        if (flight->state == AirCraftState::departure && 
-            (flight->direction == Direction::east || flight->direction == Direction::west) &&
-            flight->runway != Runway::RWY_B && 
-            flight->runway != Runway::RWY_C &&
-            !flight->hasActiveAVN) {
-            
-            pthread_mutex_lock(&avnMutex);
-            AVN avn(flight, 0, 0); // Using 0 for speeds as this is not a speed violation
-            avns.push_back(avn);
-            flight->hasActiveAVN = true;
-            
-            std::cout << "AVN ISSUED: Flight " << flight->flightNumber 
-                      << " (" << flight->airline->name << ") - Airspace Boundary Violation: "
-                      << "Incorrect departure path for assigned runway"
-                      << ", State: " << flight->getStateString() << "\n";
-            pthread_mutex_unlock(&avnMutex);
-        }
-        
-        if ((flight->state == AirCraftState::holding || flight->state == AirCraftState::approach) && 
-            !(flight->direction == Direction::north || flight->direction == Direction::south) &&
-            !flight->hasActiveAVN) {
-            
-            pthread_mutex_lock(&avnMutex);
-            AVN avn(flight, 0, 0); // Using 0 for speeds as this is not a speed violation
-            avns.push_back(avn);
-            flight->hasActiveAVN = true;
-            
-            std::cout << "AVN ISSUED: Flight " << flight->flightNumber 
-                      << " (" << flight->airline->name << ") - Airspace Boundary Violation: "
-                      << "Aircraft in wrong airspace sector for its phase"
-                      << ", State: " << flight->getStateString() << "\n";
-            pthread_mutex_unlock(&avnMutex);
-        }
-    }
-    
-    void checkPhaseViolation(Flight* flight) {
-        
-        if (flight->type == AirCraftType::cargo && 
-            flight->state == AirCraftState::approach && 
-            flight->direction == Direction::north &&
-            flight->runway != Runway::RWY_C &&
-            !flight->hasActiveAVN) {
-            
-            pthread_mutex_lock(&avnMutex);
-            AVN avn(flight, 0, 0);
-            avns.push_back(avn);
-            flight->hasActiveAVN = true;
-            
-            std::cout << "AVN ISSUED: Flight " << flight->flightNumber 
-                      << " (" << flight->airline->name << ") - Phase Violation: "
-                      << "Cargo aircraft using restricted approach path"
-                      << ", State: " << flight->getStateString() << "\n";
-            pthread_mutex_unlock(&avnMutex);
-        }
-        
-        // Check for state sequence violations (e.g. skipping mandatory states)
-        // This is a simplified example - a real system would have more complex rules
-        if (flight->state == AirCraftState::landing && 
-            flight->speed > 200 &&  // Aircraft is still at cruising speed
-            !flight->hasActiveAVN) {
-            
-            pthread_mutex_lock(&avnMutex);
-            AVN avn(flight, flight->speed, 200);
-            avns.push_back(avn);
-            flight->hasActiveAVN = true;
-            
-            std::cout << "AVN ISSUED: Flight " << flight->flightNumber 
-                      << " (" << flight->airline->name << ") - Phase Transition Violation: "
-                      << "Attempted landing at unsafe speed: " << flight->speed << " km/h"
-                      << ", State: " << flight->getStateString() << "\n";
-            pthread_mutex_unlock(&avnMutex);
-        }
-    }
+
     
     void displayFinalStats() {
         std::cout << "\n==== AirControlX Simulation Final Statistics ====\n";

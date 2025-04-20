@@ -21,11 +21,12 @@ public:
     FlightType flightType;
     time_t scheduleTime;
 
-    Flight(std::string flightNmber, Airline* airline, Direction direction, bool isEmergency = false)
-        : flightNumber(flightNumber), airline(airline), direction(direction), hasActiveAVN(hasActiveAVN), isEmergency(isEmergency) {
+    Flight(std::string flightNumber, Airline* airline, Direction direction, bool isEmergency = false)
+        : flightNumber(flightNumber), airline(airline), direction(direction), isEmergency(isEmergency) {
         id = nextId++;
         type = airline->type;
         priority = calculatePriority();
+        hasActiveAVN = false;
         
         if (direction == Direction::north || direction == Direction::south) {
             runway = Runway::RWY_A;
@@ -130,27 +131,39 @@ public:
     }
 
     void updateState() {
+        // Add a small chance (5%) of speed violation for demonstration purposes
+        bool createViolation = (rand() % 100 < 5);
 
         switch (state) {
             case AirCraftState::holding:
                 state = AirCraftState::approach;
-                speed = 240 + (std::rand() % 51); // 240-290 km/h
+                if (createViolation) {
+                    // Deliberately create a speed violation by exceeding 290 km/h for approach
+                    speed = 300 + (std::rand() % 50); // 300-350 km/h (over limit)
+                } else {
+                    speed = 240 + (std::rand() % 51); // 240-290 km/h (normal)
+                }
                 break;
                 
             case AirCraftState::approach:
                 state = AirCraftState::landing;
-                speed = 240; // Start landing at 240 km/h
+                if (createViolation) {
+                    // Create a landing speed violation (over 240 km/h)
+                    speed = 250 + (std::rand() % 30); // 250-280 km/h (over limit)
+                } else {
+                    speed = 240; // Normal landing speed
+                }
                 break;
                 
             case AirCraftState::landing:
-                speed = 30; // Slow down to taxi speed
+                speed = createViolation ? 35 : 30; // Possibly violate taxi speed limit
                 state = AirCraftState::taxi;
                 break;
                 
             case AirCraftState::taxi:
                 if (direction == Direction::north || direction == Direction::south) {
                     state = AirCraftState::at_gate;
-                    speed = 0;
+                    speed = createViolation ? 12 : 0; // Possibly violate gate speed limit
                 } else {
                     state = AirCraftState::takeoff_roll;
                     speed = 0; // Start takeoff from standstill
@@ -160,24 +173,40 @@ public:
             case AirCraftState::at_gate:
                 if (direction == Direction::east || direction == Direction::west) {
                     state = AirCraftState::taxi;
-                    speed = 15 + (std::rand() % 16); // 15-30 km/h
+                    speed = createViolation ? 35 : (15 + (std::rand() % 16)); // Possibly violate taxi speed
                 }
                 break;
                 
             case AirCraftState::takeoff_roll:
                 state = AirCraftState::climb;
-                speed = 250 + (std::rand() % 214); // 250-463 km/h
+                if (createViolation) {
+                    // Create a climb speed violation (over 463 km/h)
+                    speed = 470 + (std::rand() % 50); // 470-520 km/h (over limit)
+                } else {
+                    speed = 250 + (std::rand() % 214); // 250-463 km/h (normal)
+                }
                 break;
                 
             case AirCraftState::climb:
                 state = AirCraftState::departure;
-                speed = 800 + (std::rand() % 101); // 800-900 km/h
+                if (createViolation) {
+                    // Create a departure speed violation (outside 800-900 km/h)
+                    if (rand() % 2 == 0) {
+                        speed = 750 + (std::rand() % 50); // 750-799 km/h (under limit)
+                    } else {
+                        speed = 901 + (std::rand() % 50); // 901-950 km/h (over limit)
+                    }
+                } else {
+                    speed = 800 + (std::rand() % 101); // 800-900 km/h (normal)
+                }
                 break;
                 
             case AirCraftState::departure:
                 // Flight has departed, nothing to do
                 break;
         }
+
+        std::cout << "🤑🤑🤑🤑🤑🤑🤑\n";
     }
 
     bool isArrival() {
