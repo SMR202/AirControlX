@@ -13,15 +13,16 @@
 #include <unistd.h>
 #include <map>
 #include <string>
-
+#include <queue>
+#include <algorithm>
 
 class ATCSystem{
 private:
     std::vector<Airline> airlines;
-    std::vector<Flight*> flights;
+    std::vector<Flight*> flights; //fcfs and priority based queue
     std::vector<AVN> avns;
     std::vector<AVN> TotalAVNs;
-    std::vector<Flight> TotalFlights;
+    std::vector<std::pair<Flight,time_t>> TotalFlights;
     std::map<std::string, int> violationsByAirline;
     pthread_mutex_t flightMutex;
     pthread_mutex_t runwayMutex;
@@ -280,7 +281,7 @@ public:
                 Flight* flight = new Flight(flightNum, &airline, direction);
                 flight->priority = flight->calculatePriority(); 
                 flights.push_back(flight);
-                TotalFlights.push_back(*flight);
+                
             }
         }
         pthread_mutex_unlock(&flightMutex);
@@ -367,7 +368,7 @@ public:
         Flight* flight = new Flight(flightNum, &airline, dir, isEmergency);
         
         flights.push_back(flight);
-        TotalFlights.push_back(*flight);
+
         
         std::cout << "NEW FLIGHT: " << flightNum << " (" << airline.name << ") - " 
                   << flight->getTypeString() << " - Direction: " << flight->getDirectionString();
@@ -381,10 +382,21 @@ public:
         pthread_mutex_unlock(&flightMutex);
     }
 
+    static bool comparisonFunction(Flight* a, Flight* b) {
+        if (a->priority == b->priority) {
+            return a->scheduleTime < b->scheduleTime; // Earlier scheduled flights first
+        }
+        return a->priority > b->priority; // Higher priority first
+    }
+
     void flightProcessorLoop() {
+        usleep(3000000); // 3 seconds to see initail states 
         while (simulationRunning) {
             pthread_mutex_lock(&flightMutex);
-            
+
+            //priority queue and fcfs
+            std::sort(flights.begin(), flights.end(), comparisonFunction);
+
             // Process each flight
             for (auto it = flights.begin(); it != flights.end();) {
                 Flight* flight = *it;
@@ -469,6 +481,7 @@ public:
                             if (arrivalCompletionTimes.find(flight) == arrivalCompletionTimes.end()) {
                                 arrivalCompletionTimes[flight] = now + 15; // 15 seconds at gate before removal
                             } else if (now >= arrivalCompletionTimes[flight]) {
+                                TotalFlights.push_back(std::make_pair(*flight, now));
                                 delete flight;
                                 it = flights.erase(it);
                                 shouldAdvanceIterator = false;
@@ -508,6 +521,7 @@ public:
                             if (departureCompletionTimes.find(flight) == departureCompletionTimes.end()) {
                                 departureCompletionTimes[flight] = now + 10; // 10 seconds before departure removal
                             } else if (now >= departureCompletionTimes[flight]) {
+                                TotalFlights.push_back(std::make_pair(*flight, now));
                                 delete flight;
                                 it = flights.erase(it);
                                 shouldAdvanceIterator = false;
@@ -751,21 +765,82 @@ public:
         
         std::cout << "Total AVNs Issued: " << violationsByAirline.size() << "\n";
         
-        // // Count violations by airline (only for valid flights)
-        // std::map<std::string, int> violationsByAirline;
-        // for (const auto& avn : avns) {
-        //     bool flightValid = false;
-        //     for (auto flight : currentFlights) {
-        //         if (avn.flight == flight) {
-        //             flightValid = true;
-        //             break;
-        //         }
-        //     }
+        // Display table of all processed flights with details
+        std::cout << "\n==== FLIGHT HISTORY TABLE ====\n";
+        std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------\n";
+        std::cout << std::left << std::setw(15) << "Flight" 
+                  << std::setw(20) << "Airline" 
+                  << std::setw(12) << "Type" 
+                  << std::setw(12) << "Direction" 
+                  << std::setw(12) << "Final State"
+                  << std::setw(15) << "Priority"
+                  << std::setw(20) << "Schedule Time"
+                  << std::setw(20) << "Completion Time"
+                  << std::setw(15) << "Wait Time (s)"
+                  << "Emergency\n";
+        std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------\n";
+        
+        for (const auto& flightPair : TotalFlights) {
+            const Flight& flight = flightPair.first;
+            time_t completionTime = flightPair.second;
+            time_t waitTime = completionTime - flight.scheduleTime;
             
-        //     if (flightValid) {
-        //         violationsByAirline[avn.flight->airline->name]++;
-        //     }
-        // }
+            char scheduleTimeBuffer[26];
+            char completionTimeBuffer[26];
+            
+            // Format the time values
+            std::strftime(scheduleTimeBuffer, 26, "%H:%M:%S", std::localtime(&flight.scheduleTime));
+            std::strftime(completionTimeBuffer, 26, "%H:%M:%S", std::localtime(&completionTime));
+            
+            std::cout << std::left << std::setw(15) << flight.flightNumber 
+                      << std::setw(20) << flight.airline->name 
+                      << std::setw(12) << flight.getTypeString()
+                      << std::setw(12) << flight.getDirectionString() 
+                      << std::setw(12) << flight.getStateString() 
+                      << std::setw(15) << flight.priority
+                      << std::setw(20) << scheduleTimeBuffer
+                      << std::setw(20) << completionTimeBuffer
+                      << std::setw(15) << waitTime
+                      << (flight.isEmergency ? "YES" : "NO")
+                      << (flight.hasActiveAVN ? " (AVN)" : "") << "\n";
+        }
+        std::cout << "------------------------------------------------------------------------------------------------------------------------------------------------\n";
+        
+        // Add statistics about average wait times by priority and type
+        std::map<int, std::pair<int, int>> waitTimesByPriority; // priority -> (total wait time, count)
+        std::map<AirCraftType, std::pair<int, int>> waitTimesByType; // type -> (total wait time, count)
+        
+        for (const auto& flightPair : TotalFlights) {
+            const Flight& flight = flightPair.first;
+            time_t completionTime = flightPair.second;
+            int waitTime = static_cast<int>(completionTime - flight.scheduleTime);
+            
+            waitTimesByPriority[flight.priority].first += waitTime;
+            waitTimesByPriority[flight.priority].second++;
+            
+            waitTimesByType[flight.type].first += waitTime;
+            waitTimesByType[flight.type].second++;
+        }
+        
+        std::cout << "\n==== AVERAGE WAIT TIMES ====\n";
+        std::cout << "\nBy Priority:\n";
+        for (const auto& pair : waitTimesByPriority) {
+            int avgWaitTime = pair.second.first / (pair.second.second > 0 ? pair.second.second : 1);
+            std::cout << "Priority " << pair.first << ": " << avgWaitTime << " seconds\n";
+        }
+        
+        std::cout << "\nBy Aircraft Type:\n";
+        for (const auto& pair : waitTimesByType) {
+            int avgWaitTime = pair.second.first / (pair.second.second > 0 ? pair.second.second : 1);
+            std::string typeStr;
+            switch(pair.first) {
+                case AirCraftType::commercial: typeStr = "Commercial"; break;
+                case AirCraftType::cargo: typeStr = "Cargo"; break;
+                case AirCraftType::emergency: typeStr = "Emergency"; break;
+                default: typeStr = "Unknown";
+            }
+            std::cout << typeStr << ": " << avgWaitTime << " seconds\n";
+        }
         
         std::cout << "\nAVNs by Airline:\n";
         for (const auto& pair : violationsByAirline) {
@@ -775,9 +850,7 @@ public:
         pthread_mutex_unlock(&avnMutex);
         pthread_mutex_unlock(&flightMutex);
         
-        std::cout << "Simulation completed." << std::endl;
+        std::cout << "\nSimulation completed." << std::endl;
     }
-
-
 
 };

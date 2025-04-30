@@ -27,16 +27,27 @@ public:
         type = airline->type;
         priority = calculatePriority();
         hasActiveAVN = false;
+        scheduleTime = time(nullptr);
+        
         
         if (direction == Direction::north || direction == Direction::south) {
-            runway = Runway::RWY_A;
+
+            if (type == AirCraftType::cargo || type == AirCraftType::emergency) {
+                runway = Runway::RWY_C;
+            } else {
+                runway = Runway::RWY_A;
+            }
 
             state = AirCraftState::holding;
 
             speed = 400 + (rand() % 201); // Random speed between 400 and 600
         } 
         else if (direction == Direction::east || direction == Direction::west) {
-            runway = Runway::RWY_B;
+            if (type == AirCraftType::cargo || type == AirCraftType::emergency) {
+                runway = Runway::RWY_C;
+            } else {
+                runway = Runway::RWY_B;
+            }
 
             state = AirCraftState::at_gate;
 
