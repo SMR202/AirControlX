@@ -63,6 +63,41 @@ public:
 
     }
 
+    Flight(const Flight& other) {
+        id = other.id;
+        flightNumber = other.flightNumber;
+        airline = other.airline;
+        direction = other.direction;
+        state = other.state;
+        type = other.type;
+        runway = other.runway;
+        speed = other.speed;
+        priority = other.priority;
+        hasActiveAVN = other.hasActiveAVN;
+        isEmergency = other.isEmergency;
+        flightType = other.flightType;
+        scheduleTime = other.scheduleTime;
+    }
+    Flight& operator=(const Flight& other) {
+        if (this != &other) {
+            id = other.id;
+            flightNumber = other.flightNumber;
+            airline = other.airline;
+            direction = other.direction;
+            state = other.state;
+            type = other.type;
+            runway = other.runway;
+            speed = other.speed;
+            priority = other.priority;
+            hasActiveAVN = other.hasActiveAVN;
+            isEmergency = other.isEmergency;
+            flightType = other.flightType;
+            scheduleTime = other.scheduleTime;
+        }
+        return *this;
+    }
+    
+
     int calculatePriority() {
         
         if (isEmergency) {
@@ -205,8 +240,9 @@ public:
                 // Flight has departed, nothing to do
                 break;
         }
-
-        std::cout << "🤑🤑🤑🤑🤑🤑🤑\n";
+        
+        // Log state changes (without emojis)
+        std::cout << "State change for " << flightNumber << ": " << getStateString() << ", Speed: " << speed << "\n";
     }
 
     bool isArrival() {

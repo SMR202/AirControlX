@@ -16,4 +16,5 @@ struct AVN{
         id = nextId++;
         issueTime = time(nullptr);
     }
+
 };

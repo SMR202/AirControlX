@@ -20,7 +20,9 @@ private:
     std::vector<Airline> airlines;
     std::vector<Flight*> flights;
     std::vector<AVN> avns;
-
+    std::vector<AVN> TotalAVNs;
+    std::vector<Flight> TotalFlights;
+    std::map<std::string, int> violationsByAirline;
     pthread_mutex_t flightMutex;
     pthread_mutex_t runwayMutex;
     pthread_mutex_t avnMutex;
@@ -88,32 +90,42 @@ private:
     }
 
     void generateEmergency(){
-        int emergencyChance = rand() % 100 + 1;
-
         // Check probability based on direction
-        for (auto flight : flights){
+        for (auto flight : flights){    //(need to fix probabilities)
+            int emergencyChance = rand() % 1000 + 1; // Use a larger range for more granular control
             bool makeEmergency = false;
 
             switch (flight->direction){
                 case Direction::north:
-                    if (emergencyChance <= 10) makeEmergency = true; // 10% chance
+                    if (emergencyChance <= 10) makeEmergency = true; // 1% chance
                     break;
                 case Direction::south:
-                    if (emergencyChance <= 5) makeEmergency = true;  // 5% chance
+                    if (emergencyChance <= 5) makeEmergency = true;  // 0.5% chance
                     break;
                 case Direction::east:
-                    if (emergencyChance <= 15) makeEmergency = true; // 15% chance
+                    if (emergencyChance <= 15) makeEmergency = true; // 1.5% chance
                     break;
                 case Direction::west:
-                    if (emergencyChance <= 20) makeEmergency = true; // 20% chance
+                    if (emergencyChance <= 20) makeEmergency = true; // 2% chance
                     break;
             }
 
             if (makeEmergency && !flight->isEmergency){
                 pthread_mutex_lock(&flightMutex);
-                flight->isEmergency = true;
-                flight->priority = flight->calculatePriority();
-                std::cout << "❌ EMERGENCY DECLARED: Flight " << flight->flightNumber << " (" << flight->airline->name << ")\n";
+                // Double-check that flight still exists and isn't already an emergency
+                bool flightExists = false;
+                for (auto f : flights) {
+                    if (f == flight) {
+                        flightExists = true;
+                        break;
+                    }
+                }
+                
+                if (flightExists && !flight->isEmergency) {
+                    flight->isEmergency = true;
+                    flight->priority = flight->calculatePriority();
+                    std::cout << "❌ EMERGENCY DECLARED: Flight " << flight->flightNumber << " (" << flight->airline->name << ")\n";
+                }
                 pthread_mutex_unlock(&flightMutex);
             }
         }
@@ -156,6 +168,8 @@ private:
                 pthread_mutex_lock(&avnMutex);
                 AVN avn(flight, flight->speed, allowedSpeed);
                 avns.push_back(avn);
+                violationsByAirline[avn.flight->airline->name]++;
+                //TotalAVNs.push_back(avn);
                 flight->hasActiveAVN = true;
                 
                 std::cout << "💸 AVN ISSUED: Flight " << flight->flightNumber << " (" << flight->airline->name << ") - Speed: " << flight->speed << " km/h, Allowed: " << allowedSpeed << " km/h, State: " << flight->getStateString() << "\n";
@@ -266,6 +280,7 @@ public:
                 Flight* flight = new Flight(flightNum, &airline, direction);
                 flight->priority = flight->calculatePriority(); 
                 flights.push_back(flight);
+                TotalFlights.push_back(*flight);
             }
         }
         pthread_mutex_unlock(&flightMutex);
@@ -305,7 +320,9 @@ public:
                 westTime = now + 240;
             }
             
-            generateEmergency();
+            if (now % 60 == 0) { // Every minute
+                generateEmergency();
+            }
             
             usleep(500000); 
         }
@@ -350,6 +367,7 @@ public:
         Flight* flight = new Flight(flightNum, &airline, dir, isEmergency);
         
         flights.push_back(flight);
+        TotalFlights.push_back(*flight);
         
         std::cout << "NEW FLIGHT: " << flightNum << " (" << airline.name << ") - " 
                   << flight->getTypeString() << " - Direction: " << flight->getDirectionString();
@@ -367,64 +385,148 @@ public:
         while (simulationRunning) {
             pthread_mutex_lock(&flightMutex);
             
+            // Process each flight
             for (auto it = flights.begin(); it != flights.end();) {
                 Flight* flight = *it;
+                bool shouldAdvanceIterator = true;
+                bool stateChanged = false;
                 
-                // Check if flight needs a runway
-                if ((flight->state == AirCraftState::approach && flight->isArrival()) || 
-                    (flight->state == AirCraftState::taxi && flight->isDeparture())) {
-                    
-                    Runway runway = assignRunway(flight);
-                    flight->runway = runway;
-                    
-                    pthread_mutex_lock(&runwayMutex);
-                    bool runwayAvailable = isRunwayAvailable(runway);
-                    pthread_mutex_unlock(&runwayMutex);
-                    
-                    if (runwayAvailable) {
+                // Process differently based on current state
+                switch(flight->state) {
+                    case AirCraftState::holding:
+                        // Holding -> Approach (no runway needed)
                         flight->updateState();
-
-                        std::cout<<"🤑🤑🤑🤑FLIGHT " << flight->flightNumber << " (" << flight->airline->name << ") - "
-                                 << flight->getStateString() << " - Runway: " << flight->getRunwayString() 
-                                 << "\n";
+                        stateChanged = true;
+                        break;
                         
-                        // Release runway after use
-                        if ((flight->state == AirCraftState::taxi && flight->isArrival()) || 
-                            (flight->state == AirCraftState::climb && flight->isDeparture())) {
-                            pthread_mutex_lock(&runwayMutex);
-                            releaseRunway(flight->runway);
+                    case AirCraftState::approach:
+                        // Approach -> Landing (needs runway)
+                        pthread_mutex_lock(&runwayMutex);
+                        if (isRunwayAvailable(flight->runway)) {
+                            occupyRunway(flight->runway);
                             pthread_mutex_unlock(&runwayMutex);
+                            
+                            flight->updateState();
+                            stateChanged = true;
+                            
+                            std::cout << "Flight " << flight->flightNumber << " is landing on " 
+                                      << flight->getRunwayString() << std::endl;
+                        } else {
+                            pthread_mutex_unlock(&runwayMutex);
+                            // If runway not available, flight remains in approach state
                         }
-                    }
-                } 
-                else {
-                    // Update state for flights not needing a runway
-                    flight->updateState();
+                        break;
+                        
+                    case AirCraftState::landing:
+                        // Landing -> Taxi (release runway after landing)
+                        flight->updateState();
+                        stateChanged = true;
+                        
+                        // Release runway after landing is complete
+                        pthread_mutex_lock(&runwayMutex);
+                        releaseRunway(flight->runway);
+                        pthread_mutex_unlock(&runwayMutex);
+                        
+                        std::cout << "Flight " << flight->flightNumber 
+                                  << " completed landing, runway " 
+                                  << flight->getRunwayString() << " released" << std::endl;
+                        break;
+                        
+                    case AirCraftState::taxi:
+                        if (flight->isArrival()) {
+                            // Taxi -> At Gate for arrivals
+                            flight->updateState();
+                            stateChanged = true;
+                        } else {
+                            // For departures, taxi -> takeoff_roll (needs runway)
+                            pthread_mutex_lock(&runwayMutex);
+                            if (isRunwayAvailable(flight->runway)) {
+                                occupyRunway(flight->runway);
+                                pthread_mutex_unlock(&runwayMutex);
+                                
+                                flight->updateState();
+                                stateChanged = true;
+                                
+                                std::cout << "Flight " << flight->flightNumber 
+                                          << " is taking off on " << flight->getRunwayString() << std::endl;
+                            } else {
+                                pthread_mutex_unlock(&runwayMutex);
+                                // If runway not available, flight remains in taxi state
+                            }
+                        }
+                        break;
+                        
+                    case AirCraftState::at_gate:
+                        if (flight->isDeparture()) {
+                            // At Gate -> Taxi for departures
+                            flight->updateState();
+                            stateChanged = true;
+                        } else {
+                            // For arrivals, this is a terminal state. Check if it's time to remove the flight
+                            time_t now = time(nullptr);
+                            static std::map<Flight*, time_t> arrivalCompletionTimes;
+                            
+                            if (arrivalCompletionTimes.find(flight) == arrivalCompletionTimes.end()) {
+                                arrivalCompletionTimes[flight] = now + 15; // 15 seconds at gate before removal
+                            } else if (now >= arrivalCompletionTimes[flight]) {
+                                delete flight;
+                                it = flights.erase(it);
+                                shouldAdvanceIterator = false;
+                                
+                                std::cout << "Arrival flight completed and removed from system" << std::endl;
+                            }
+                        }
+                        break;
+                        
+                    case AirCraftState::takeoff_roll:
+                        // Takeoff Roll -> Climb
+                        flight->updateState();
+                        stateChanged = true;
+                        break;
+                        
+                    case AirCraftState::climb:
+                        // Climb -> Departure (release runway after climbout)
+                        flight->updateState();
+                        stateChanged = true;
+                        
+                        // Release runway after takeoff is complete
+                        pthread_mutex_lock(&runwayMutex);
+                        releaseRunway(flight->runway);
+                        pthread_mutex_unlock(&runwayMutex);
+                        
+                        std::cout << "Flight " << flight->flightNumber 
+                                  << " completed takeoff, runway " 
+                                  << flight->getRunwayString() << " released" << std::endl;
+                        break;
+                        
+                    case AirCraftState::departure:
+                        // For departures, this is a terminal state. Check if it's time to remove the flight
+                        {
+                            time_t now = time(nullptr);
+                            static std::map<Flight*, time_t> departureCompletionTimes;
+                            
+                            if (departureCompletionTimes.find(flight) == departureCompletionTimes.end()) {
+                                departureCompletionTimes[flight] = now + 10; // 10 seconds before departure removal
+                            } else if (now >= departureCompletionTimes[flight]) {
+                                delete flight;
+                                it = flights.erase(it);
+                                shouldAdvanceIterator = false;
+                                
+                                std::cout << "Departure flight completed and removed from system" << std::endl;
+                            }
+                        }
+                        break;
                 }
                 
-                if ((flight->state == AirCraftState::at_gate && flight->isArrival()) || 
-                    (flight->state == AirCraftState::departure && flight->isDeparture())) {
-                    
-                    // Allow for some time at gate before removing
-                    static std::map<Flight*, time_t> completionTimes;
-                    
-                    if (completionTimes.find(flight) == completionTimes.end()) {
-                        completionTimes[flight] = time(nullptr) + 10;
-                    } 
-                    else if (time(0) >= completionTimes[flight]) {
-                        delete flight;
-                        it = flights.erase(it);
-                        continue;
-                    }
-
+                if (shouldAdvanceIterator) {
+                    ++it;
                 }
-                
-                ++it;
             }
             
             pthread_mutex_unlock(&flightMutex);
             
-            usleep(1000000); //1
+            // Sleep to avoid excessive CPU usage
+            usleep(5000000); // 5 seconds -- Changed to 5 seconds so state is not changed rapidly
         }
     }
 
@@ -436,15 +538,28 @@ public:
             system("clear");
             #endif
             
-            // Calculate elapsed time
+            // Calculate elapsed time (timer shit) currently glitching when seconds below 10?
             time_t now = time(0);
             int elapsed = static_cast<int>(difftime(now, simulationStartTime));
+            std::string minutes = std::to_string(elapsed / 60);
+            std::string seconds;
+            if (elapsed % 60 < 10) {
+                seconds = '0' + std::to_string(elapsed % 60);
+            }
+            else {
+                seconds = std::to_string(elapsed % 60);
+            }
             
             std::cout << "==== AirControlX Simulation - Time: " 
-                      << elapsed / 60 << ":" << std::setw(2) << std::setfill('0') << elapsed % 60 
+                      << minutes << ":"
+                      << seconds
                       << " / 5:00 ====\n\n";
     
+            // Store current flights for validation
+            std::vector<Flight*> currentFlights;
             pthread_mutex_lock(&flightMutex);
+            currentFlights = flights; // Make a copy of the pointers
+            
             std::cout << "ACTIVE FLIGHTS: " << flights.size() << "\n";
             std::cout << "----------------------------------------------------------------------\n";
             std::cout << std::left << std::setw(15) << std::setfill(' ') << "Flight" 
@@ -477,9 +592,31 @@ public:
             std::cout << "RWY-C (Cargo/Emergency): " << (runwayStatus[2] ? "OCCUPIED" : "AVAILABLE") << "\n";
             pthread_mutex_unlock(&runwayMutex);
             
-            // Display AVN information
+            // Display AVN information with safety checks
             pthread_mutex_lock(&avnMutex);
             std::cout << "\nISSUED AVNs: " << avns.size() << "\n";
+            
+            // Check for and remove dangling AVNs
+            for (auto it = avns.begin(); it != avns.end();) {
+                bool flightExists = false;
+                
+                // Check if the flight referenced by this AVN still exists
+                for (auto flight : currentFlights) {
+                    if (it->flight == flight) {
+                        flightExists = true;
+                        break;
+                    }
+                }
+                
+                if (!flightExists) {
+                    // Flight no longer exists, remove this AVN
+                    it = avns.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            
+            // Now display the valid AVNs
             if (!avns.empty()) {
                 std::cout << "----------------------------------------------------------------------\n";
                 std::cout << std::left << std::setw(10) << "AVN ID" 
@@ -490,18 +627,36 @@ public:
                 std::cout << "----------------------------------------------------------------------\n";
                 
                 for (const auto& avn : avns) {
-                    std::cout << std::left << std::setw(10) << "AVN-" + std::to_string(avn.id)
-                              << std::setw(15) << avn.flight->flightNumber
-                              << std::setw(15) << avn.flight->airline->name
-                              << std::setw(15) << avn.recordedSpeed
-                              << avn.allowedSpeed << "\n";
+                    // Additional safety check
+                    bool flightValid = false;
+                    for (auto flight : currentFlights) {
+                        if (avn.flight == flight) {
+                            flightValid = true;
+                            break;
+                        }
+                    }
+                    
+                    if (flightValid) {
+                        std::cout << std::left << std::setw(10) << "AVN-" + std::to_string(avn.id)
+                                  << std::setw(15) << avn.flight->flightNumber
+                                  << std::setw(15) << avn.flight->airline->name
+                                  << std::setw(15) << avn.recordedSpeed
+                                  << avn.allowedSpeed << "\n";
+                    } else {
+                        std::cout << std::left << std::setw(10) << "AVN-" + std::to_string(avn.id)
+                                  << std::setw(15) << "[deleted]"
+                                  << std::setw(15) << "[deleted]"
+                                  << std::setw(15) << avn.recordedSpeed
+                                  << avn.allowedSpeed << "\n";
+                    }
                 }
             }
             pthread_mutex_unlock(&avnMutex);
             
-            sleep(2);
+            sleep(1);
         }
     }
+
     void radarLoop() {
 
         const int radarInterval = 200000; // 200ms
@@ -554,6 +709,8 @@ public:
         pthread_mutex_lock(&avnMutex);
         AVN avn(flight, flight->speed, allowedSpeed);
         avns.push_back(avn);
+        violationsByAirline[avn.flight->airline->name]++;
+        //TotalAVNs.push_back(avn);
         flight->hasActiveAVN = true;
         
         std::cout << "AVN ISSUED: Flight " << flight->flightNumber 
@@ -570,14 +727,45 @@ public:
         pthread_mutex_lock(&flightMutex);
         pthread_mutex_lock(&avnMutex);
         
-        std::cout << "Total Flights Processed: " << flights.size() + avns.size() << "\n";
-        std::cout << "Total AVNs Issued: " << avns.size() << "\n";
+        // Make a copy of current flights for validation
+        std::vector<Flight*> currentFlights = flights;
         
-        // Count violations by airline
-        std::map<std::string, int> violationsByAirline;
-        for (const auto& avn : avns) {
-            violationsByAirline[avn.flight->airline->name]++;
+        std::cout << "Total Flights Processed: " << TotalFlights.size() << "\n";
+        
+        // Clean up AVNs with invalid flight pointers
+        for (auto it = avns.begin(); it != avns.end();) {
+            bool flightExists = false;
+            for (auto flight : currentFlights) {
+                if (it->flight == flight) {
+                    flightExists = true;
+                    break;
+                }
+            }
+            
+            if (!flightExists) {
+                it = avns.erase(it);
+            } else {
+                ++it;
+            }
         }
+        
+        std::cout << "Total AVNs Issued: " << violationsByAirline.size() << "\n";
+        
+        // // Count violations by airline (only for valid flights)
+        // std::map<std::string, int> violationsByAirline;
+        // for (const auto& avn : avns) {
+        //     bool flightValid = false;
+        //     for (auto flight : currentFlights) {
+        //         if (avn.flight == flight) {
+        //             flightValid = true;
+        //             break;
+        //         }
+        //     }
+            
+        //     if (flightValid) {
+        //         violationsByAirline[avn.flight->airline->name]++;
+        //     }
+        // }
         
         std::cout << "\nAVNs by Airline:\n";
         for (const auto& pair : violationsByAirline) {
@@ -586,6 +774,8 @@ public:
         
         pthread_mutex_unlock(&avnMutex);
         pthread_mutex_unlock(&flightMutex);
+        
+        std::cout << "Simulation completed." << std::endl;
     }
 
 
