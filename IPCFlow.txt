@@ -1,0 +1,83 @@
+| From Process      | To Process        | Data Exchanged                                                   |
+| ----------------- | ----------------- | ---------------------------------------------------------------- |
+| ATCS Controller   | AVN Generator     | Violation details: Aircraft ID, type, speed, position, timestamp |
+| AVN Generator     | Airline Portal    | AVN Notice with all relevant fields                              |
+| AVN Generator     | StripePay Process | AVN ID, Aircraft ID, Aircraft type, Total fine                   |
+| StripePay Process | AVN Generator     | Payment confirmation (AVN ID, status: "paid")                    |
+| StripePay Process | Airline Portal    | Payment confirmation (AVN ID, status: "paid")                    |
+| AVN Generator     | ATCS Controller   | Notification of cleared violation                                |
+
+
+# AirControlX IPC Flow Documentation
+
+## Pipes Structure
+The following pipes are established for inter-process communication:
+
+| Pipe Name         | From Process      | To Process        | Data Exchanged                                                   |
+| ----------------- | ----------------- | ----------------- | ---------------------------------------------------------------- |
+| atcs_to_avn       | ATCS Controller   | AVN Generator     | Violation details: Aircraft ID, type, speed, position, timestamp |
+| avn_to_airline    | AVN Generator     | Airline Portal    | AVN Notice with all relevant fields                              |
+| avn_to_stripe     | AVN Generator     | StripePay Process | AVN ID, Aircraft ID, Aircraft type, Total fine                   |
+| stripe_to_avn     | StripePay Process | AVN Generator     | Payment confirmation (AVN ID, status: "paid")                    |
+| stripe_to_airline | StripePay Process | Airline Portal    | Payment confirmation (AVN ID, status: "paid")                    |
+| avn_to_atcs       | AVN Generator     | ATCS Controller   | Notification of cleared violation                                |
+
+## Data Structures
+
+### ViolationDetails
+- Used by ATCS Controller to notify AVN Generator of a violation
+- Fields:
+  - aircraftId (int)
+  - aircraftType (char[20])
+  - speed (double)
+  - position (char[20])
+  - timestamp (time_t)
+
+### AVNNotice
+- Used by AVN Generator to notify Airline Portal of a violation
+- Fields:
+  - avnId (int)
+  - aircraftId (int)
+  - aircraftType (char[20])
+  - recordedSpeed (double)
+  - allowedSpeed (double)
+  - airlineName (char[30])
+  - flightNumber (char[20])
+
+### PaymentRequest
+- Used by AVN Generator to send payment information to StripePay
+- Fields:
+  - avnId (int)
+  - aircraftId (int)
+  - aircraftType (char[20])
+  - totalFine (double)
+
+### PaymentConfirmation
+- Used by StripePay to confirm payment to both AVN Generator and Airline Portal
+- Fields:
+  - avnId (int)
+  - status (char[10]) - "paid"
+
+### ViolationClearance
+- Used by AVN Generator to notify ATCS Controller that a violation is cleared
+- Fields:
+  - avnId (int)
+  - aircraftId (int)
+  - status (char[20]) - "cleared"
+
+## Process Flow
+
+1. When a violation is detected, ATCS Controller sends violation details to AVN Generator
+2. AVN Generator creates an AVN notice and sends it to the Airline Portal
+3. AVN Generator calculates the fine and sends a payment request to StripePay
+4. StripePay processes the payment and sends confirmation to both AVN Generator and Airline Portal
+5. AVN Generator marks the violation as cleared and notifies ATCS Controller
+6. ATCS Controller updates its records to reflect the cleared violation
+
+## Implementation Notes
+
+- All pipes are set to non-blocking mode using `fcntl(fd, F_SETFL, O_NONBLOCK)`
+- Each process closes the pipe ends it doesn't use
+- Each process uses a loop to check for new messages on its input pipes
+- The parent process closes all pipe ends after forking the child processes
+- The parent process waits for all child processes to complete before exiting

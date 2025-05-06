@@ -18,6 +18,9 @@
 
 class ATCSystem{
 private:
+    int atcs_to_avn[2];
+    int avn_to_atcs[2];
+    
     std::vector<Airline> airlines;
     std::vector<Flight*> flights; //fcfs and priority based queue
     std::vector<AVN> avns;
@@ -206,8 +209,35 @@ private:
     }
 
 public:
-    ATCSystem(){
+    ATCSystem(int* atcs_to_avn, int* avn_to_atcs) {
+        // Initialize pipe file descriptors
+        this->atcs_to_avn[0] = atcs_to_avn[0];
+        this->atcs_to_avn[1] = atcs_to_avn[1];
+        this->avn_to_atcs[0] = avn_to_atcs[0];
+        this->avn_to_atcs[1] = avn_to_atcs[1];
 
+        pthread_mutex_init(&flightMutex, NULL);
+        pthread_mutex_init(&runwayMutex, NULL);
+        pthread_mutex_init(&avnMutex, NULL);
+
+        runwayStatus[0] = false; // RWY_A
+        runwayStatus[1] = false; // RWY_B
+        runwayStatus[2] = false; // RWY_C
+
+        airlines = {
+            {"PIA", AirCraftType::commercial, 6, 4},
+            {"AirBlue", AirCraftType::commercial, 4, 4},
+            {"FedEx", AirCraftType::cargo, 3, 2},
+            {"Pakistan Airforce", AirCraftType::emergency, 2, 1},
+            {"Blue Dart", AirCraftType::cargo, 2, 2},
+            {"AghaKhan Air Ambulance", AirCraftType::emergency, 2, 1}
+        };
+
+        simulationRunning = false;
+    }
+
+    // Keep the default constructor for backward compatibility
+    ATCSystem() {
         pthread_mutex_init(&flightMutex, NULL);
         pthread_mutex_init(&runwayMutex, NULL);
         pthread_mutex_init(&avnMutex, NULL);
