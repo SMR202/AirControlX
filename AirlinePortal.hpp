@@ -10,6 +10,13 @@
 #include <string>
 #include <cstring>
 
+// Structure to represent a pay button
+struct PayButton {
+    int avnId;
+    sf::RectangleShape shape;
+    sf::Text text;
+};
+
 class AirlinePortal {
 private:
     int avn_to_airline[2];
@@ -40,8 +47,14 @@ private:
     sf::RectangleShape noticeTable;
     std::vector<sf::Text> tableHeaders;
     std::vector<std::vector<sf::Text>> noticeRows;
+    std::vector<PayButton> payButtons;
     float scrollOffset;
     int maxVisibleRows;
+
+    // Payment processing
+    bool paymentProcessed;
+    int lastProcessedAvnId;
+    int paymentMessageTimer;
 
 public:
     AirlinePortal(int* avn_to_airline, int* stripe_to_airline) {
@@ -51,8 +64,8 @@ public:
         this->stripe_to_airline[0] = stripe_to_airline[0];
         this->stripe_to_airline[1] = stripe_to_airline[1];
         
-        // Initialize SFML elements
-        window.create(sf::VideoMode(1200, 800), "Airline Portal");
+        // Initialize SFML elements with a wider window
+        window.create(sf::VideoMode(1800, 900), "Airline Portal");
         window.setFramerateLimit(60);
         
         // Load font
@@ -62,16 +75,16 @@ public:
             }
         }
         
-        // Initialize login screen elements
+        // Initialize login screen elements - center in the wider window
         currentState = LOGIN;
         loginPrompt.setFont(font);
         loginPrompt.setCharacterSize(36);
         loginPrompt.setFillColor(sf::Color::White);
-        loginPrompt.setPosition(400, 200);
+        loginPrompt.setPosition(740, 300);
         loginPrompt.setString("Enter Airline Name:");
         
         inputBox.setSize(sf::Vector2f(500, 50));
-        inputBox.setPosition(350, 300);
+        inputBox.setPosition(690, 400);
         inputBox.setFillColor(sf::Color(50, 50, 50));
         inputBox.setOutlineColor(sf::Color::White);
         inputBox.setOutlineThickness(2);
@@ -79,7 +92,7 @@ public:
         inputText.setFont(font);
         inputText.setCharacterSize(24);
         inputText.setFillColor(sf::Color::White);
-        inputText.setPosition(360, 310);
+        inputText.setPosition(700, 410);
         
         // Initialize dashboard elements
         dashboardTitle.setFont(font);
@@ -91,18 +104,20 @@ public:
         backButton.setCharacterSize(24);
         backButton.setFillColor(sf::Color::White);
         backButton.setString("< Back to Login");
-        backButton.setPosition(50, 750);
+        backButton.setPosition(50, 850);
         
-        noticeTable.setSize(sf::Vector2f(1100, 650));
+        // Make notice table wider
+        noticeTable.setSize(sf::Vector2f(1700, 750));
         noticeTable.setPosition(50, 80);
         noticeTable.setFillColor(sf::Color(30, 30, 50, 200));
         noticeTable.setOutlineColor(sf::Color(100, 100, 150));
         noticeTable.setOutlineThickness(2);
         
-        // Set up table headers
-        std::vector<std::string> headers = {"AVN ID", "Aircraft ID", "Flight", "Recorded Speed", "Allowed Speed", "Aircraft Type", "Fine Amount", "Timestamp"};
+        // Set up table headers with wider columns
+        std::vector<std::string> headers = {"AVN ID", "Aircraft ID", "Flight", "Recorded Speed", "Allowed Speed", "Aircraft Type", "Fine Amount", "Timestamp", "Actions"};
         float headerX = 60;
-        float columnWidth = 135;
+        // Increase column width for better readability
+        float columnWidth = 180;
         
         for (const auto& header : headers) {
             sf::Text headerText;
@@ -117,7 +132,12 @@ public:
         
         // Initialize scroll values
         scrollOffset = 0;
-        maxVisibleRows = 20;
+        maxVisibleRows = 25;
+
+        // Initialize payment processing variables
+        paymentProcessed = false;
+        lastProcessedAvnId = -1;
+        paymentMessageTimer = 0;
     }
 
     void run() {
@@ -172,6 +192,14 @@ public:
                             inputText.setString(inputString);
                             std::cout << "Returned to login screen" << std::endl;
                         }
+                        
+                        // Check if any Pay button was clicked
+                        for (auto& payButton : payButtons) {
+                            if (payButton.shape.getGlobalBounds().contains(event.mouseButton.x, event.mouseButton.y)) {
+                                std::cout << "Pay button clicked for AVN ID: " << payButton.avnId << std::endl;
+                                processPayment(payButton.avnId);
+                            }
+                        }
                     }
                 }
                 
@@ -213,6 +241,12 @@ public:
                     }
                 }
                 
+                // Draw Pay buttons
+                for (auto& payButton : payButtons) {
+                    window.draw(payButton.shape);
+                    window.draw(payButton.text);
+                }
+                
                 window.draw(backButton);
                 
                 // If no notices, show a message
@@ -224,6 +258,18 @@ public:
                     noNoticesText.setPosition(500, 300);
                     noNoticesText.setString("No AVN notices for " + currentAirline);
                     window.draw(noNoticesText);
+                }
+
+                // Display payment confirmation message
+                if (paymentProcessed && paymentMessageTimer > 0) {
+                    sf::Text paymentMessage;
+                    paymentMessage.setFont(font);
+                    paymentMessage.setCharacterSize(24);
+                    paymentMessage.setFillColor(sf::Color::Green);
+                    paymentMessage.setPosition(500, 800);
+                    paymentMessage.setString("Payment processed for AVN ID: " + std::to_string(lastProcessedAvnId));
+                    window.draw(paymentMessage);
+                    paymentMessageTimer--;
                 }
             }
             
@@ -306,6 +352,7 @@ private:
     void updateNoticeTable() {
         try {
             noticeRows.clear();
+            payButtons.clear();
             
             // Filter notices for the current airline
             if (noticesByAirline.find(currentAirline) != noticesByAirline.end()) {
@@ -326,7 +373,7 @@ private:
                         }
                         
                         float cellX = 60;
-                        float columnWidth = 135;
+                        float columnWidth = 180;
                         
                         // AVN ID
                         sf::Text cell;
@@ -378,10 +425,27 @@ private:
                         cell.setPosition(cellX, rowY);
                         char timeStr[50];
                         time_t safeTime = notice.timestamp > 0 ? notice.timestamp : time(0);
-                        // Format: Day, Month DD, YYYY HH:MM:SS
                         strftime(timeStr, sizeof(timeStr), "%a, %b %d, %Y %H:%M:%S", localtime(&safeTime));
                         cell.setString(timeStr);
                         row.push_back(cell);
+                        cellX += columnWidth;
+                        
+                        // Create a Pay button for this row
+                        PayButton payButton;
+                        payButton.avnId = notice.avnId;
+                        payButton.shape.setSize(sf::Vector2f(80, 24));
+                        payButton.shape.setPosition(cellX, rowY - 2);
+                        payButton.shape.setFillColor(sf::Color(50, 150, 50));
+                        payButton.shape.setOutlineColor(sf::Color::White);
+                        payButton.shape.setOutlineThickness(1);
+                        
+                        payButton.text.setFont(font);
+                        payButton.text.setCharacterSize(16);
+                        payButton.text.setFillColor(sf::Color::White);
+                        payButton.text.setPosition(cellX + 25, rowY);
+                        payButton.text.setString("Pay");
+                        
+                        payButtons.push_back(payButton);
                         
                         noticeRows.push_back(row);
                     }
@@ -429,5 +493,62 @@ private:
         }
         
         std::cout << "Added mock data for testing: " << avnNotices.size() << " notices" << std::endl;
+    }
+
+    // Handle payment for an AVN notice
+    void processPayment(int avnId) {
+        // Create payment request to send to Stripe
+        PaymentRequest paymentRequest;
+        
+        // Find the AVN notice with this ID
+        AVNNotice* targetNotice = nullptr;
+        for (auto& notices : noticesByAirline) {
+            for (auto& notice : notices.second) {
+                if (notice.avnId == avnId) {
+                    targetNotice = &notice;
+                    break;
+                }
+            }
+            if (targetNotice) break;
+        }
+        
+        if (!targetNotice) {
+            std::cerr << "Error: Could not find AVN notice with ID " << avnId << std::endl;
+            return;
+        }
+        
+        // Prepare payment request
+        paymentRequest.avnId = avnId;
+        strncpy(paymentRequest.aircraftType, targetNotice->aircraftType, sizeof(paymentRequest.aircraftType) - 1);
+        paymentRequest.aircraftType[sizeof(paymentRequest.aircraftType) - 1] = '\0';
+        paymentRequest.totalFine = targetNotice->totalFine;
+        
+        // Extract aircraft ID as an integer for the payment system
+        int aircraftIdNum = 0;
+        try {
+            // Try to extract a number from the aircraft ID string
+            std::string idStr = targetNotice->aircraftId;
+            size_t dashPos = idStr.find('-');
+            if (dashPos != std::string::npos && dashPos + 1 < idStr.length()) {
+                aircraftIdNum = std::stoi(idStr.substr(dashPos + 1));
+            } else {
+                aircraftIdNum = std::stoi(idStr);
+            }
+        } catch (std::exception& e) {
+            aircraftIdNum = avnId * 100; // Fallback if parsing fails
+        }
+        paymentRequest.aircraftId = aircraftIdNum;
+        
+        // Send the payment request to the Stripe system
+        write(stripe_to_airline[1], &paymentRequest, sizeof(paymentRequest));
+        
+        std::cout << "Payment request sent for AVN ID: " << avnId << 
+                     " Aircraft: " << targetNotice->aircraftId << 
+                     " Amount: $" << targetNotice->totalFine << std::endl;
+        
+        // Display a confirmation message to the user
+        paymentProcessed = true;
+        lastProcessedAvnId = avnId;
+        paymentMessageTimer = 180; // Display for 3 seconds (assuming 60 FPS)
     }
 };

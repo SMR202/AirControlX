@@ -3,7 +3,7 @@
 echo "Compiling AirControlX application with integrated ATCSystem..."
 
 # Compile the SFML menu with integrated ATCSystem using pthreads
-g++ -o sfml_menu sfml_menu.cpp -lsfml-graphics -lsfml-window -lsfml-system -pthread -Wall
+g++ -o sfml_menu source.cpp -lsfml-graphics -lsfml-window -lsfml-system -pthread -Wall
 
 # Check if compilation was successful
 if [ $? -eq 0 ]; then
