@@ -1,0 +1,70 @@
+AVN ID: 1, Aircraft ID: AirBlue-101, Airline: AirBlue, Flight: AirBlue-101, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $500.00, Timestamp: Wed May  7 20:15:52 2025
+AVN ID: 2, Aircraft ID: PIA-102, Airline: PIA, Flight: PIA-102, Type: Commercial, Recorded Speed: 476.00, Allowed Speed: 463.00, Fine: $1300.00, Timestamp: Wed May  7 20:16:02 2025
+AVN ID: 3, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $700.00, Timestamp: Wed May  7 20:16:17 2025
+AVN ID: 1, Aircraft ID: AirBlue-102, Airline: AirBlue, Flight: AirBlue-102, Type: Commercial, Recorded Speed: 303.00, Allowed Speed: 290.00, Fine: $575000.00, Timestamp: Wed May  7 20:37:11 2025
+AVN ID: 2, Aircraft ID: AirBlue-100, Airline: AirBlue, Flight: AirBlue-100, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 20:37:36 2025
+AVN ID: 3, Aircraft ID: AirBlue-103, Airline: AirBlue, Flight: AirBlue-103, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 20:37:46 2025
+AVN ID: 1, Aircraft ID: PIA-100, Airline: PIA, Flight: PIA-100, Type: Commercial, Recorded Speed: 258.00, Allowed Speed: 240.00, Fine: $575000.00, Timestamp: Wed May  7 20:43:09 2025
+AVN ID: 1, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $115000.00, Timestamp: Wed May  7 20:44:17 2025
+AVN ID: 2, Aircraft ID: FedEx-101, Airline: FedEx, Flight: FedEx-101, Type: Cargo, Recorded Speed: 474.00, Allowed Speed: 463.00, Fine: $805000.00, Timestamp: Wed May  7 20:44:32 2025
+AVN ID: 1, Aircraft ID: PIA-100, Airline: PIA, Flight: PIA-100, Type: Commercial, Recorded Speed: 330.00, Allowed Speed: 290.00, Fine: $575000.00, Timestamp: Wed May  7 20:45:49 2025
+AVN ID: 1, Aircraft ID: PIA-102, Airline: PIA, Flight: PIA-102, Type: Commercial, Recorded Speed: 264.00, Allowed Speed: 240.00, Fine: $575000.00, Timestamp: Wed May  7 20:54:30 2025
+AVN ID: 2, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 788.00, Allowed Speed: 900.00, Fine: $115000.00, Timestamp: Wed May  7 20:54:40 2025
+AVN ID: 1, Aircraft ID: PIA-101, Airline: PIA, Flight: PIA-101, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 21:02:54 2025
+AVN ID: 1, Aircraft ID: PIA-101, Airline: PIA, Flight: PIA-101, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:04:48 2025
+AVN ID: 1, Aircraft ID: PIA-102, Airline: PIA, Flight: PIA-102, Type: Commercial, Recorded Speed: 342.00, Allowed Speed: 290.00, Fine: $575000.00, Timestamp: Wed May  7 21:06:23 2025
+AVN ID: 2, Aircraft ID: AirBlue-100, Airline: AirBlue, Flight: AirBlue-100, Type: Commercial, Recorded Speed: 508.00, Allowed Speed: 463.00, Fine: $575000.00, Timestamp: Wed May  7 21:06:44 2025
+AVN ID: 3, Aircraft ID: BDart-101, Airline: BDart, Flight: BDart-101, Type: Cargo, Recorded Speed: 255.00, Allowed Speed: 240.00, Fine: $805000.00, Timestamp: Wed May  7 21:07:09 2025
+AVN ID: 1, Aircraft ID: FedEx-100, Airline: FedEx, Flight: FedEx-100, Type: Cargo, Recorded Speed: 796.00, Allowed Speed: 900.00, Fine: $805000.00, Timestamp: Wed May  7 21:09:34 2025
+AVN ID: 1, Aircraft ID: PIA-101, Airline: PIA, Flight: PIA-101, Type: Commercial, Recorded Speed: 910.00, Allowed Speed: 900.00, Fine: $575000.00, Timestamp: Wed May  7 21:23:37 2025
+AVN ID: 1, Aircraft ID: FedEx-101, Airline: FedEx, Flight: FedEx-101, Type: Cargo, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $805000.00, Timestamp: Wed May  7 21:24:30 2025
+AVN ID: 2, Aircraft ID: PIA-102, Airline: PIA, Flight: PIA-102, Type: Commercial, Recorded Speed: 345.00, Allowed Speed: 290.00, Fine: $575000.00, Timestamp: Wed May  7 21:24:30 2025
+AVN ID: 3, Aircraft ID: PAF-100, Airline: PAF, Flight: PAF-100, Type: Emergency, Recorded Speed: 516.00, Allowed Speed: 463.00, Fine: $115000.00, Timestamp: Wed May  7 21:24:40 2025
+AVN ID: 4, Aircraft ID: AirBlue-101, Airline: AirBlue, Flight: AirBlue-101, Type: Commercial, Recorded Speed: 505.00, Allowed Speed: 463.00, Fine: $575000.00, Timestamp: Wed May  7 21:24:50 2025
+AVN ID: 5, Aircraft ID: BDart-101, Airline: BDart, Flight: BDart-101, Type: Cargo, Recorded Speed: 490.00, Allowed Speed: 463.00, Fine: $805000.00, Timestamp: Wed May  7 21:25:15 2025
+AVN ID: 1, Aircraft ID: FedEx-100, Airline: FedEx, Flight: FedEx-100, Type: Cargo, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $805000.00, Timestamp: Wed May  7 21:29:43 2025
+AVN ID: 1, Aircraft ID: FedEx-100, Airline: FedEx, Flight: FedEx-100, Type: Cargo, Recorded Speed: 308.00, Allowed Speed: 290.00, Fine: $805000.00, Timestamp: Wed May  7 21:30:43 2025
+AVN ID: 2, Aircraft ID: FedEx-101, Airline: FedEx, Flight: FedEx-101, Type: Cargo, Recorded Speed: 256.00, Allowed Speed: 240.00, Fine: $805000.00, Timestamp: Wed May  7 21:31:08 2025
+AVN ID: 3, Aircraft ID: BDart-101, Airline: BDart, Flight: BDart-101, Type: Cargo, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $805000.00, Timestamp: Wed May  7 21:31:28 2025
+AVN ID: 1, Aircraft ID: FedEx-100, Airline: FedEx, Flight: FedEx-100, Type: Cargo, Recorded Speed: 279.00, Allowed Speed: 240.00, Fine: $805000.00, Timestamp: Wed May  7 21:32:36 2025
+AVN ID: 2, Aircraft ID: AirBlue-102, Airline: AirBlue, Flight: AirBlue-102, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 21:32:46 2025
+AVN ID: 3, Aircraft ID: AirBlue-103, Airline: AirBlue, Flight: AirBlue-103, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 21:32:51 2025
+AVN ID: 1, Aircraft ID: PAF-100, Airline: PAF, Flight: PAF-100, Type: Emergency, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $115000.00, Timestamp: Wed May  7 21:41:18 2025
+AVN ID: 2, Aircraft ID: FedEx-101, Airline: FedEx, Flight: FedEx-101, Type: Cargo, Recorded Speed: 317.00, Allowed Speed: 290.00, Fine: $805000.00, Timestamp: Wed May  7 21:41:18 2025
+AVN ID: 3, Aircraft ID: PIA-103, Airline: PIA, Flight: PIA-103, Type: Commercial, Recorded Speed: 499.00, Allowed Speed: 463.00, Fine: $575000.00, Timestamp: Wed May  7 21:41:48 2025
+AVN ID: 1, Aircraft ID: PIA-102, Airline: PIA, Flight: PIA-102, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:43:43 2025
+AVN ID: 2, Aircraft ID: PIA-101, Airline: PIA, Flight: PIA-101, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:43:58 2025
+AVN ID: 3, Aircraft ID: AirBlue-101, Airline: AirBlue, Flight: AirBlue-101, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 21:44:13 2025
+AVN ID: 1, Aircraft ID: PIA-101, Airline: PIA, Flight: PIA-101, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:48:20 2025
+AVN ID: 2, Aircraft ID: AirBlue-102, Airline: AirBlue, Flight: AirBlue-102, Type: Commercial, Recorded Speed: 250.00, Allowed Speed: 240.00, Fine: $575000.00, Timestamp: Wed May  7 21:48:40 2025
+AVN ID: 3, Aircraft ID: AirBlue-101, Airline: AirBlue, Flight: AirBlue-101, Type: Commercial, Recorded Speed: 768.00, Allowed Speed: 900.00, Fine: $575000.00, Timestamp: Wed May  7 21:48:55 2025
+AVN ID: 1, Aircraft ID: PAF-100, Airline: PAF, Flight: PAF-100, Type: Emergency, Recorded Speed: 330.00, Allowed Speed: 290.00, Fine: $115000.00, Timestamp: Wed May  7 21:50:09 2025
+AVN ID: 2, Aircraft ID: PIA-103, Airline: PIA, Flight: PIA-103, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:50:09 2025
+AVN ID: 3, Aircraft ID: AirBlue-102, Airline: AirBlue, Flight: AirBlue-102, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:50:09 2025
+AVN ID: 4, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 919.00, Allowed Speed: 900.00, Fine: $115000.00, Timestamp: Wed May  7 21:50:29 2025
+AVN ID: 5, Aircraft ID: AirBlue-103, Airline: AirBlue, Flight: AirBlue-103, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:50:29 2025
+AVN ID: 6, Aircraft ID: FedEx-101, Airline: FedEx, Flight: FedEx-101, Type: Cargo, Recorded Speed: 276.00, Allowed Speed: 240.00, Fine: $805000.00, Timestamp: Wed May  7 21:50:39 2025
+AVN ID: 1, Aircraft ID: AirBlue-103, Airline: AirBlue, Flight: AirBlue-103, Type: Commercial, Recorded Speed: 251.00, Allowed Speed: 240.00, Fine: $575000.00, Timestamp: Wed May  7 21:52:03 2025
+AVN ID: 1, Aircraft ID: PIA-102, Airline: PIA, Flight: PIA-102, Type: Commercial, Recorded Speed: 349.00, Allowed Speed: 290.00, Fine: $575000.00, Timestamp: Wed May  7 21:53:10 2025
+AVN ID: 2, Aircraft ID: PAF-100, Airline: PAF, Flight: PAF-100, Type: Emergency, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $115000.00, Timestamp: Wed May  7 21:53:25 2025
+AVN ID: 3, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 506.00, Allowed Speed: 463.00, Fine: $115000.00, Timestamp: Wed May  7 21:53:25 2025
+AVN ID: 4, Aircraft ID: FedEx-100, Airline: FedEx, Flight: FedEx-100, Type: Cargo, Recorded Speed: 799.00, Allowed Speed: 900.00, Fine: $805000.00, Timestamp: Wed May  7 21:53:40 2025
+AVN ID: 5, Aircraft ID: AirBlue-102, Airline: AirBlue, Flight: AirBlue-102, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 21:53:40 2025
+AVN ID: 1, Aircraft ID: FedEx-100, Airline: FedEx, Flight: FedEx-100, Type: Cargo, Recorded Speed: 478.00, Allowed Speed: 463.00, Fine: $805000.00, Timestamp: Wed May  7 21:55:32 2025
+AVN ID: 1, Aircraft ID: AirBlue-103, Airline: AirBlue, Flight: AirBlue-103, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:56:25 2025
+AVN ID: 1, Aircraft ID: AirBlue-103, Airline: AirBlue, Flight: AirBlue-103, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 21:57:21 2025
+AVN ID: 2, Aircraft ID: PIA-102, Airline: PIA, Flight: PIA-102, Type: Commercial, Recorded Speed: 928.00, Allowed Speed: 900.00, Fine: $575000.00, Timestamp: Wed May  7 21:57:36 2025
+AVN ID: 3, Aircraft ID: FedEx-101, Airline: FedEx, Flight: FedEx-101, Type: Cargo, Recorded Speed: 251.00, Allowed Speed: 240.00, Fine: $805000.00, Timestamp: Wed May  7 21:57:51 2025
+AVN ID: 1, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $115000.00, Timestamp: Wed May  7 21:59:05 2025
+AVN ID: 2, Aircraft ID: AirBlue-100, Airline: AirBlue, Flight: AirBlue-100, Type: Commercial, Recorded Speed: 490.00, Allowed Speed: 463.00, Fine: $575000.00, Timestamp: Wed May  7 21:59:10 2025
+AVN ID: 1, Aircraft ID: PIA-100, Airline: PIA, Flight: PIA-100, Type: Commercial, Recorded Speed: 310.00, Allowed Speed: 290.00, Fine: $575000.00, Timestamp: Wed May  7 22:01:15 2025
+AVN ID: 1, Aircraft ID: AirBlue-101, Airline: AirBlue, Flight: AirBlue-101, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 22:02:45 2025
+AVN ID: 2, Aircraft ID: AirBlue-103, Airline: AirBlue, Flight: AirBlue-103, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 22:02:45 2025
+AVN ID: 1, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 758.00, Allowed Speed: 900.00, Fine: $115000.00, Timestamp: Wed May  7 22:04:40 2025
+AVN ID: 1, Aircraft ID: PIA-100, Airline: PIA, Flight: PIA-100, Type: Commercial, Recorded Speed: 12.00, Allowed Speed: 5.00, Fine: $575000.00, Timestamp: Wed May  7 22:05:41 2025
+AVN ID: 2, Aircraft ID: PIA-103, Airline: PIA, Flight: PIA-103, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 22:05:41 2025
+AVN ID: 3, Aircraft ID: AirBlue-102, Airline: AirBlue, Flight: AirBlue-102, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 22:05:51 2025
+AVN ID: 1, Aircraft ID: PIA-103, Airline: PIA, Flight: PIA-103, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 22:13:41 2025
+AVN ID: 2, Aircraft ID: AirBlue-101, Airline: AirBlue, Flight: AirBlue-101, Type: Commercial, Recorded Speed: 35.00, Allowed Speed: 30.00, Fine: $575000.00, Timestamp: Wed May  7 22:13:41 2025
+AVN ID: 3, Aircraft ID: PAF-100, Airline: PAF, Flight: PAF-100, Type: Emergency, Recorded Speed: 503.00, Allowed Speed: 463.00, Fine: $115000.00, Timestamp: Wed May  7 22:13:51 2025
+AVN ID: 4, Aircraft ID: AK Amb-100, Airline: AK Amb, Flight: AK Amb-100, Type: Emergency, Recorded Speed: 509.00, Allowed Speed: 463.00, Fine: $115000.00, Timestamp: Wed May  7 22:14:01 2025

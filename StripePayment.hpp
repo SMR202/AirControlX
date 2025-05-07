@@ -20,7 +20,7 @@ public:
         this->stripe_to_airline[1] = stripe_to_airline[1];
     }
 
-    void confirmPayment(){
+    void run(){
         std::cout<<"Checking Payment in Stripe\n";
         sleep(1);
     }

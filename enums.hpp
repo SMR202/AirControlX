@@ -1,6 +1,8 @@
 #pragma once
 // enums used because integers will get confusing 
 
+int WindowX;
+int WindowY;
 
 enum class AirCraftType{
     commercial,

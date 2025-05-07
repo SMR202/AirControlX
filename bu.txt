@@ -1,0 +1,127 @@
+#include <SFML/Graphics.hpp>
+#include <iostream>
+#include <vector>
+#include <string>
+#include "SFML_stuff.hpp"
+
+// Simple flag to indicate if the simulation has been run
+bool simulationRun = false;
+
+int main() {
+    // Create the main window 
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "AirControlX SFML Menu", sf::Style::Default);
+    window.setFramerateLimit(60);
+    
+    // Create the menu
+    Menu menu(window.getSize());
+    
+    // Create the simulation view
+    SimulationView simulationView(window);
+    
+    // Background
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("/home/sameer/Desktop/desk/AirControlX/Media/MenuBackground3.png")) {
+        std::cout << "Failed to load background image, using default gradient background." << std::endl;
+    }
+    
+    sf::Sprite backgroundSprite;
+    // Scale background to fit window
+    if (backgroundTexture.getSize().x > 0) {
+        backgroundSprite.setTexture(backgroundTexture);
+        float scaleX = (float)window.getSize().x / backgroundTexture.getSize().x;
+        float scaleY = (float)window.getSize().y / backgroundTexture.getSize().y;
+        float scale = std::max(scaleX, scaleY);
+        backgroundSprite.setScale(scale, scale);
+        backgroundSprite.setPosition(
+            (window.getSize().x - backgroundTexture.getSize().x * scale) / 2.0f,
+            (window.getSize().y - backgroundTexture.getSize().y * scale) / 2.0f
+        );
+    }
+    
+    // Main loop
+    while (window.isOpen()) {
+        // Handle events
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+            
+            // Handle escape key to exit
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                window.close();
+            }
+            
+            // Get mouse position for hover effects
+            if (event.type == sf::Event::MouseMoved) {
+                if (simulationView.active()) {
+                    // Do nothing
+                } else {
+                    menu.update(event.mouseMove.x, event.mouseMove.y);
+                }
+            }
+            
+            // Handle menu item clicks
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                if (simulationView.active()) {
+                    if (simulationView.isBackButtonClicked(event.mouseButton.x, event.mouseButton.y)) {
+                        simulationView.deactivate();
+                    }
+                } else {
+                    int selectedIndex = menu.getSelectedIndex();
+                    if (selectedIndex != -1) {
+                        switch (selectedIndex) {
+                            case 0: // Start Simulation
+                                std::cout << "Starting simulation..." << std::endl;
+                                
+                                // Only start if not already run
+                                if (!simulationRun) {
+                                    // Simple approach: just run the simulation executable as a separate process
+                                    std::system("cd /home/sameer/Desktop/desk/AirControlX && ./source > simulation_log.txt &");
+                                    simulationRun = true;
+                                }
+                                
+                                simulationView.activate();
+                                break;
+                            case 1: // Settings
+                                std::cout << "Opening settings..." << std::endl;
+                                break;
+                            case 2: // View Statistics
+                                std::cout << "Viewing statistics..." << std::endl;
+                                break;
+                            case 3: // Credits
+                                std::cout << "Showing credits..." << std::endl;
+                                break;
+                            case 4: // Exit
+                                std::cout << "Exiting..." << std::endl;
+                                window.close();
+                                break;
+                        }
+                        menu.resetSelection();
+                    }
+                }
+            }
+        }
+        
+        // Clear the screen
+        window.clear(sf::Color(0, 0, 50));
+        
+        if (simulationView.active()) {
+            simulationView.update();
+            simulationView.draw();
+        } else {
+            // Draw background if texture loaded successfully
+            if (backgroundTexture.getSize().x > 0) {
+                window.draw(backgroundSprite);
+            }
+            
+            // Draw the menu
+            menu.draw(window);
+        }
+        
+        // Display the window
+        window.display();
+    }
+    
+    return 0;
+}

@@ -15,9 +15,11 @@
 #include <string>
 #include <queue>
 #include <algorithm>
+#include "MsgStructs.hpp"
+#include <cstring>
 
 class ATCSystem{
-private:
+public:
     int atcs_to_avn[2];
     int avn_to_atcs[2];
     
@@ -96,21 +98,21 @@ private:
     void generateEmergency(){
         // Check probability based on direction
         for (auto flight : flights){    //(need to fix probabilities)
-            int emergencyChance = rand() % 1000 + 1; // Use a larger range for more granular control
+            int emergencyChance = rand() % 100 + 1; // Use a larger range for more granular control
             bool makeEmergency = false;
 
             switch (flight->direction){
                 case Direction::north:
-                    if (emergencyChance <= 10) makeEmergency = true; // 1% chance
+                    if (emergencyChance <= 10) makeEmergency = true; // 10% chance
                     break;
                 case Direction::south:
-                    if (emergencyChance <= 5) makeEmergency = true;  // 0.5% chance
+                    if (emergencyChance <= 5) makeEmergency = true;  // 5% chance
                     break;
                 case Direction::east:
-                    if (emergencyChance <= 15) makeEmergency = true; // 1.5% chance
+                    if (emergencyChance <= 15) makeEmergency = true; // 15% chance
                     break;
                 case Direction::west:
-                    if (emergencyChance <= 20) makeEmergency = true; // 2% chance
+                    if (emergencyChance <= 20) makeEmergency = true; // 20% chance
                     break;
             }
 
@@ -132,10 +134,11 @@ private:
                 }
                 pthread_mutex_unlock(&flightMutex);
             }
+            sleep(1);
         }
     }
 
-    void checkSpeedViolations() {
+    void checkSpeedViolations() { //not being used
         pthread_mutex_lock(&flightMutex);
         
         for (auto flight : flights) {
@@ -228,10 +231,40 @@ public:
             {"PIA", AirCraftType::commercial, 6, 4},
             {"AirBlue", AirCraftType::commercial, 4, 4},
             {"FedEx", AirCraftType::cargo, 3, 2},
-            {"Pakistan Airforce", AirCraftType::emergency, 2, 1},
-            {"Blue Dart", AirCraftType::cargo, 2, 2},
-            {"AghaKhan Air Ambulance", AirCraftType::emergency, 2, 1}
+            {"PAF", AirCraftType::emergency, 2, 1},
+            {"BDart", AirCraftType::cargo, 2, 2},
+            {"AK Amb", AirCraftType::emergency, 2, 1}
         };
+        airlines[0].planeTexture.loadFromFile("Media/AirPlanes/PIA.png");
+        airlines[1].planeTexture.loadFromFile("Media/AirPlanes/Airblue.png");
+        airlines[2].planeTexture.loadFromFile("Media/AirPlanes/FedEx.png");
+        airlines[3].planeTexture.loadFromFile("Media/AirPlanes/PAF.png");
+        airlines[4].planeTexture.loadFromFile("Media/AirPlanes/BlueDart.png");
+        airlines[5].planeTexture.loadFromFile("Media/AirPlanes/AirAmbulance.png");
+        airlines[0].planeSprite.setTexture(airlines[0].planeTexture);
+        airlines[1].planeSprite.setTexture(airlines[1].planeTexture);
+        airlines[2].planeSprite.setTexture(airlines[2].planeTexture);
+        airlines[3].planeSprite.setTexture(airlines[3].planeTexture);
+        airlines[4].planeSprite.setTexture(airlines[4].planeTexture);
+        airlines[5].planeSprite.setTexture(airlines[5].planeTexture);
+        airlines[0].planeSprite.setScale(0.4f, 0.4f);
+        airlines[1].planeSprite.setScale(0.4f, 0.4f);
+        airlines[2].planeSprite.setScale(0.4f, 0.4f);
+        airlines[3].planeSprite.setScale(0.4f, 0.4f);
+        airlines[4].planeSprite.setScale(0.4f, 0.4f);
+        airlines[5].planeSprite.setScale(0.4f, 0.4f);
+        airlines[0].planeSprite.setOrigin(airlines[0].planeTexture.getSize().x / 2, airlines[0].planeTexture.getSize().y / 2);
+        airlines[1].planeSprite.setOrigin(airlines[1].planeTexture.getSize().x / 2, airlines[1].planeTexture.getSize().y / 2);
+        airlines[2].planeSprite.setOrigin(airlines[2].planeTexture.getSize().x / 2, airlines[2].planeTexture.getSize().y / 2);
+        airlines[3].planeSprite.setOrigin(airlines[3].planeTexture.getSize().x / 2, airlines[3].planeTexture.getSize().y / 2);
+        airlines[4].planeSprite.setOrigin(airlines[4].planeTexture.getSize().x / 2, airlines[4].planeTexture.getSize().y / 2);
+        airlines[5].planeSprite.setOrigin(airlines[5].planeTexture.getSize().x / 2, airlines[5].planeTexture.getSize().y / 2);
+        // airlines[0].planeSprite.setPosition(100, 100);
+        // airlines[1].planeSprite.setPosition(200, 200);
+        // airlines[2].planeSprite.setPosition(300, 300);
+        // airlines[3].planeSprite.setPosition(400, 400);
+        // airlines[4].planeSprite.setPosition(500, 500);
+        // airlines[5].planeSprite.setPosition(600, 600);
 
         simulationRunning = false;
     }
@@ -250,11 +283,40 @@ public:
             {"PIA", AirCraftType::commercial, 6, 4},
             {"AirBlue", AirCraftType::commercial, 4, 4},
             {"FedEx", AirCraftType::cargo, 3, 2},
-            {"Pakistan Airforce", AirCraftType::emergency, 2, 1},
-            {"Blue Dart", AirCraftType::cargo, 2, 2},
-            {"AghaKhan Air Ambulance", AirCraftType::emergency, 2, 1}
+            {"PAF", AirCraftType::emergency, 2, 1},
+            {"BDart", AirCraftType::cargo, 2, 2},
+            {"AK Amb", AirCraftType::emergency, 2, 1}
         };
-
+        airlines[0].planeTexture.loadFromFile("Media/AirPlanes/PIA.png");
+        airlines[1].planeTexture.loadFromFile("Media/AirPlanes/Airblue.png");
+        airlines[2].planeTexture.loadFromFile("Media/AirPlanes/FedEx.png");
+        airlines[3].planeTexture.loadFromFile("Media/AirPlanes/PAF.png");
+        airlines[4].planeTexture.loadFromFile("Media/AirPlanes/BlueDart.png");
+        airlines[5].planeTexture.loadFromFile("Media/AirPlanes/AirAmbulance.png");
+        airlines[0].planeSprite.setTexture(airlines[0].planeTexture);
+        airlines[1].planeSprite.setTexture(airlines[1].planeTexture);
+        airlines[2].planeSprite.setTexture(airlines[2].planeTexture);
+        airlines[3].planeSprite.setTexture(airlines[3].planeTexture);
+        airlines[4].planeSprite.setTexture(airlines[4].planeTexture);
+        airlines[5].planeSprite.setTexture(airlines[5].planeTexture);
+        airlines[0].planeSprite.setScale(0.4f, 0.4f);
+        airlines[1].planeSprite.setScale(0.4f, 0.4f);
+        airlines[2].planeSprite.setScale(0.4f, 0.4f);
+        airlines[3].planeSprite.setScale(0.4f, 0.4f);
+        airlines[4].planeSprite.setScale(0.4f, 0.4f);
+        airlines[5].planeSprite.setScale(0.4f, 0.4f);
+        airlines[0].planeSprite.setOrigin(airlines[0].planeTexture.getSize().x / 2, airlines[0].planeTexture.getSize().y / 2);
+        airlines[1].planeSprite.setOrigin(airlines[1].planeTexture.getSize().x / 2, airlines[1].planeTexture.getSize().y / 2);
+        airlines[2].planeSprite.setOrigin(airlines[2].planeTexture.getSize().x / 2, airlines[2].planeTexture.getSize().y / 2);
+        airlines[3].planeSprite.setOrigin(airlines[3].planeTexture.getSize().x / 2, airlines[3].planeTexture.getSize().y / 2);
+        airlines[4].planeSprite.setOrigin(airlines[4].planeTexture.getSize().x / 2, airlines[4].planeTexture.getSize().y / 2);
+        airlines[5].planeSprite.setOrigin(airlines[5].planeTexture.getSize().x / 2, airlines[5].planeTexture.getSize().y / 2);
+        // airlines[0].planeSprite.setPosition(100, 100);
+        // airlines[1].planeSprite.setPosition(200, 200);
+        // airlines[2].planeSprite.setPosition(300, 300);
+        // airlines[3].planeSprite.setPosition(400, 400);
+        // airlines[4].planeSprite.setPosition(500, 500);
+        // airlines[5].planeSprite.setPosition(600, 600);
         simulationRunning = false;
     }
 
@@ -582,7 +644,7 @@ public:
             system("clear");
             #endif
             
-            // Calculate elapsed time (timer shit) currently glitching when seconds below 10?
+            // Calculate elapsed time
             time_t now = time(0);
             int elapsed = static_cast<int>(difftime(now, simulationStartTime));
             std::string minutes = std::to_string(elapsed / 60);
@@ -594,10 +656,16 @@ public:
                 seconds = std::to_string(elapsed % 60);
             }
             
+            // Get current day and date
+            char dateBuffer[64];
+            struct tm* timeinfo = localtime(&now);
+            strftime(dateBuffer, sizeof(dateBuffer), "%A, %B %d, %Y", timeinfo);
+            
             std::cout << "==== AirControlX Simulation - Time: " 
                       << minutes << ":"
                       << seconds
-                      << " / 5:00 ====\n\n";
+                      << " / 5:00 ====\n";
+            std::cout << "==== " << dateBuffer << " ====\n\n";
     
             // Store current flights for validation
             std::vector<Flight*> currentFlights;
@@ -754,8 +822,38 @@ public:
         AVN avn(flight, flight->speed, allowedSpeed);
         avns.push_back(avn);
         violationsByAirline[avn.flight->airline->name]++;
-        //TotalAVNs.push_back(avn);
         flight->hasActiveAVN = true;
+        
+        // Properly copy strings to char arrays
+        AVNNotice avnToGenerate;
+        avnToGenerate.avnId = avn.id;
+        
+        strncpy(avnToGenerate.aircraftId, flight->flightNumber.c_str(), sizeof(avnToGenerate.aircraftId) - 1);
+        avnToGenerate.aircraftId[sizeof(avnToGenerate.aircraftId) - 1] = '\0'; // Ensure null termination
+        
+        strncpy(avnToGenerate.AirlineName, flight->airline->name.c_str(), sizeof(avnToGenerate.AirlineName) - 1);
+        avnToGenerate.AirlineName[sizeof(avnToGenerate.AirlineName) - 1] = '\0'; // Ensure null termination
+        
+        strncpy(avnToGenerate.aircraftType, flight->getTypeString().c_str(), sizeof(avnToGenerate.aircraftType) - 1);
+        avnToGenerate.aircraftType[sizeof(avnToGenerate.aircraftType) - 1] = '\0'; // Ensure null termination
+        
+        strncpy(avnToGenerate.flightNumber, flight->flightNumber.c_str(), sizeof(avnToGenerate.flightNumber) - 1);
+        avnToGenerate.flightNumber[sizeof(avnToGenerate.flightNumber) - 1] = '\0'; // Ensure null termination
+        
+        avnToGenerate.recordedSpeed = flight->speed;
+        avnToGenerate.allowedSpeed = allowedSpeed;
+        if (flight->type == AirCraftType::commercial) {
+            avnToGenerate.totalFine = 500000 * 1.15;
+        } else if (flight->type == AirCraftType::cargo) {
+            avnToGenerate.totalFine = 700000 * 1.15;
+        } else if (flight->type == AirCraftType::emergency) {
+            avnToGenerate.totalFine = 100000 * 1.15;
+        }
+        avnToGenerate.timestamp = time(0);
+        
+        // Don't close the read end, and don't close the write end here
+        // Only write to the pipe
+        write(atcs_to_avn[1], &avnToGenerate, sizeof(avnToGenerate));
         
         std::cout << "AVN ISSUED: Flight " << flight->flightNumber 
                   << " (" << flight->airline->name << ") - Speed Violation: " 
@@ -883,4 +981,57 @@ public:
         std::cout << "\nSimulation completed." << std::endl;
     }
 
+    // New accessor methods for SFML integration
+    
+    // Get runway status (thread-safe)
+    bool getRunwayStatus(int index) {
+        pthread_mutex_lock(&runwayMutex);
+        bool status = runwayStatus[index];
+        pthread_mutex_unlock(&runwayMutex);
+        return status;
+    }
+    
+    // Get flight count (thread-safe)
+    size_t getFlightCount() {
+        pthread_mutex_lock(&flightMutex);
+        size_t count = flights.size();
+        pthread_mutex_unlock(&flightMutex);
+        return count;
+    }
+    
+    // Get AVN count (thread-safe)
+    size_t getAVNCount() {
+        pthread_mutex_lock(&avnMutex);
+        size_t count = avns.size();
+        pthread_mutex_unlock(&avnMutex);
+        return count;
+    }
+    
+    // Get simulation running status
+    bool isSimulationRunning() {
+        return simulationRunning;
+    }
+    
+    // Additional accessor methods for SFML UI integration
+    
+    // Get a thread-safe copy of the flights vector
+    std::vector<Flight*> getFlightsCopy() {
+        pthread_mutex_lock(&flightMutex);
+        std::vector<Flight*> flightsCopy = flights;
+        pthread_mutex_unlock(&flightMutex);
+        return flightsCopy;
+    }
+    
+    // Get a thread-safe copy of the AVNs vector
+    std::vector<AVN> getAVNsCopy() {
+        pthread_mutex_lock(&avnMutex);
+        std::vector<AVN> avnsCopy = avns;
+        pthread_mutex_unlock(&avnMutex);
+        return avnsCopy;
+    }
+    
+    // Get simulation start time
+    time_t getSimulationStartTime() {
+        return simulationStartTime;
+    }
 };

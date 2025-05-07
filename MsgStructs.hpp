@@ -3,23 +3,27 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+
 // Message structures for IPC
 struct ViolationDetails {
-    int aircraftId;
-    char aircraftType[20];
+    int avnId;
+    char aircraftId[20];
+    char AirlineName[20];
     double speed;
-    char position[20];
+    double allowedSpeed;
     time_t timestamp;
 };
 
 struct AVNNotice {
     int avnId;
-    int aircraftId;
-    char aircraftType[20];
+    char aircraftId[20];
+    char AirlineName[30];
     double recordedSpeed;
     double allowedSpeed;
-    char airlineName[30];
+    char aircraftType[20];
     char flightNumber[20];
+    double totalFine;
+    time_t timestamp;
 };
 
 struct PaymentRequest {

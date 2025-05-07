@@ -3,6 +3,7 @@
 #include "enums.hpp"
 #include "Airline.hpp"
 #include <cstdlib> 
+#include <SFML/Graphics.hpp>
 
 class Flight{
     static int nextId;
@@ -20,6 +21,8 @@ public:
     bool isEmergency;
     FlightType flightType;
     time_t scheduleTime;
+    int altitude; // New altitude property in feet
+    sf::Sprite planeSprite;
 
     Flight(std::string flightNumber, Airline* airline, Direction direction, bool isEmergency = false)
         : flightNumber(flightNumber), airline(airline), direction(direction), isEmergency(isEmergency) {
@@ -71,7 +74,34 @@ public:
                 flightType = FlightType::domestic_departure;
                 break;
         }
+        
+        // Initialize altitude based on current state
+        altitude = getAltitude();
 
+        planeSprite.setTexture(airline->planeTexture);
+        planeSprite.setOrigin(airline->planeTexture.getSize().x / 2, airline->planeTexture.getSize().y / 2);
+        planeSprite.setScale(0.4f, 0.4f);
+        if (runway == Runway::RWY_C){
+            planeSprite.setPosition(WindowX * 0.9f, WindowY * 0.9f);
+        } 
+        else if (runway == Runway::RWY_A){
+            if (direction == Direction::north){
+                planeSprite.setPosition(WindowX * 0.1f, WindowY * 0.9f);
+                planeSprite.setRotation(0); // Rotate for north direction
+            } else {
+                planeSprite.setPosition(WindowX * 0.1f, WindowY * 0.1f);
+                planeSprite.setRotation(180); // Rotate for south direction
+            }
+        } 
+        else if (runway == Runway::RWY_B){
+            if (direction == Direction::east){
+                planeSprite.setPosition(WindowX * 0.2f, WindowY * 0.85f);
+                planeSprite.setRotation(90); // Rotate for east direction
+            } else {
+                planeSprite.setPosition(WindowX * 0.8f, WindowY * 0.85f);
+                planeSprite.setRotation(270); // Rotate for west direction
+            }
+        }
     }
 
     Flight(const Flight& other) {
@@ -88,6 +118,7 @@ public:
         isEmergency = other.isEmergency;
         flightType = other.flightType;
         scheduleTime = other.scheduleTime;
+        altitude = other.altitude;
     }
     Flight& operator=(const Flight& other) {
         if (this != &other) {
@@ -104,6 +135,7 @@ public:
             isEmergency = other.isEmergency;
             flightType = other.flightType;
             scheduleTime = other.scheduleTime;
+            altitude = other.altitude;
         }
         return *this;
     }
@@ -252,8 +284,12 @@ public:
                 break;
         }
         
+        // Update altitude based on new state
+        altitude = getAltitude();
+        
         // Log state changes (without emojis)
-        std::cout << "State change for " << flightNumber << ": " << getStateString() << ", Speed: " << speed << "\n";
+        std::cout << "State change for " << flightNumber << ": " << getStateString() 
+                  << ", Speed: " << speed << ", Altitude: " << altitude << " ft\n";
     }
 
     bool isArrival() {
@@ -348,6 +384,29 @@ public:
         }
     }
 
+    int getAltitude() const {
+        // Return altitude based on aircraft state
+        switch (state) {
+            case AirCraftState::holding:
+                return 15000; // Holding pattern altitude
+            case AirCraftState::approach:
+                return 5000;  // Initial approach
+            case AirCraftState::landing:
+                return 1000;  // Final approach/landing
+            case AirCraftState::taxi:
+                return 0;     // On ground
+            case AirCraftState::at_gate:
+                return 0;     // At gate
+            case AirCraftState::takeoff_roll:
+                return 0;     // Taking off (still on runway)
+            case AirCraftState::climb:
+                return 8000;  // Climbing after takeoff
+            case AirCraftState::departure:
+                return 30000; // Cruising altitude
+            default:
+                return 0;
+        }
+    }
 
 };
 
